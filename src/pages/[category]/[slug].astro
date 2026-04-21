@@ -1,0 +1,765 @@
+	---
+import Layout from '../../layouts/Layout.astro';
+import { CATEGORIES } from '../../site';
+import { getCollection, render } from 'astro:content';
+
+const AUTHORS = [
+	{ name: 'Ethan Walker', photo: '/abouts/Ethan-Walker.jpg' },
+	{ name: 'Mason Whitmore', photo: '/abouts/Mason-Whitmore.jpg' },
+	{ name: 'Caleb Harrison', photo: '/abouts/Caleb-Harrison.jpg' },
+];
+
+const INTERNAL_LINK_VARIATIONS = [
+	"You can also explore more related information by reading about",
+	"To expand on what you're learning in this article, also check out",
+	"If this topic piques your interest, you can find more information here.",
+	"Continue exploring this topic with our article on",
+	"Discover more details and complete explanations in",
+	"Expand on the information you are reading now by visiting",
+	"To delve a little deeper into this topic, consult",
+	"It's also worth checking out our content on",
+	"Keep learning and discover more details at",
+	"Other related content that may interest you is about",
+	"Explore more related ideas and concepts at",
+	"Expand your knowledge with this article dedicated to",
+	"If you want to understand this topic better, also check out",
+	"Continue reading for more useful information about",
+	"Discover another interesting approach by reading about",
+	"You can also find more information by visiting",
+	"If you'd like to explore this topic further, check out",
+	"Find more related content in our article about",
+	"For more examples and explanations, visit",
+	"You can also delve deeper into this topic by reading about",
+	"Expand on what you're reading with more details in",
+	"Discover more useful content related to",
+	"Continue learning with our guide on",
+	"If you're looking for more information on this topic, check out",
+	"Also explore our content dedicated to",
+	"Expand on this information by reading our article about",
+	"Discover more interesting resources at",
+	"If you're interested in further research on this topic, visit",
+	"Continue with more relevant information about",
+	"To delve even deeper into this topic, review",
+	"You can also learn more by reading about",
+	"Discover another interesting perspective in",
+	"Expand your knowledge with our content on",
+	"If you'd like to explore this topic further, see",
+	"Find more detailed explanations in",
+	"Continue reading to learn more about",
+	"You can also check out our analysis on",
+	"If you want to expand on what you're reading now, visit",
+	"Discover more related content by exploring",
+	"Expand your understanding of the topic by reading about",
+	"To learn more about this topic, review",
+	"You can also find more information in",
+	"Explore more interesting content related to",
+	"Continue discovering more about this topic in",
+	"If you would like to know more useful details, visit",
+	"Learn more by consulting our article on",
+	"You can also explore more content at",
+	"Discover another comprehensive guide dedicated to",
+	"If you're interested in learning more, check out",
+	"Continue exploring more information about",
+	"To expand on the context of this topic, consult",
+	"You can also read our detailed guide on",
+	"Discover more interesting facts at",
+	"If you want to learn more about this topic, visit",
+	"Expand this content with more information at",
+	"Continue reading for more details about",
+	"You can also check out this related content",
+	"Discover more helpful explanations by reading about",
+	"To learn more about this topic in depth, visit",
+	"Expand your reading by exploring more content about",
+	"You can also find out more at",
+	"If you want to understand this aspect better, consult",
+	"Discover more interesting perspectives on",
+	"Expand your knowledge by reading more about",
+	"Continue learning with additional content about",
+	"You can also find more useful details in",
+	"If you're interested in this topic, check out our content on",
+	"Discover more related resources at",
+	"Expand your knowledge by exploring more about",
+	"Continue with another interesting read about",
+	"You can also find more information at",
+	"Discover more content related to this topic at",
+	"Expand on what you are learning by reviewing",
+	"Continue exploring this topic by reading about",
+	"You can also see more details in",
+	"Discover another complete explanation about",
+	"Expand this information with more content about",
+	"Continue learning by reviewing our article on",
+	"You can also explore more interesting details in",
+	"Discover more educational content at",
+	"Expand your reading for more information about",
+	"Continue exploring more resources related to",
+	"Discover more related topics by visiting",
+	"Expand your knowledge by consulting more content about",
+	"Continue learning with our content about",
+	"You can also find more examples in",
+	"Discover more interesting analyses at",
+	"Learn more about this topic by reading our content on",
+	"Continue investigating more about",
+	"You can also explore other guides on",
+	"Discover more detailed information at",
+	"Expand your understanding by reviewing our article on",
+	"Continue with more useful content related to",
+	"You can also learn more about this topic at",
+	"Discover more interesting ideas by reading about",
+	"Expand on this topic with more information at",
+	"Continue learning more about this topic by visiting",
+];
+
+const hashString = (value: string) => {
+	let hash = 5381;
+	for (let i = 0; i < value.length; i++) {
+		hash = (hash * 33) ^ value.charCodeAt(i);
+	}
+	return hash >>> 0;
+};
+
+const mulberry32 = (seed: number) => {
+	let a = seed >>> 0;
+	return () => {
+		a = (a + 0x6d2b79f5) >>> 0;
+		let t = a;
+		t = Math.imul(t ^ (t >>> 15), t | 1);
+		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+};
+
+const shuffleInPlace = <T,>(arr: T[], rnd: () => number) => {
+	for (let i = arr.length - 1; i > 0; i--) {
+		const j = Math.floor(rnd() * (i + 1));
+		[arr[i], arr[j]] = [arr[j], arr[i]];
+	}
+	return arr;
+};
+
+export async function getStaticPaths() {
+	const entries = await getCollection('articles');
+
+	return entries.map((entry) => ({
+		params: {
+			category: entry.id.replace(/\.(md|mdx)$/, '').split('/')[0],
+			slug: entry.id.replace(/\.(md|mdx)$/, '').split('/').slice(1).join('/'),
+		},
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const categoryInfo = CATEGORIES.find((c) => c.slug === entry.data.category);
+const isBooksCategory = entry.data.category === 'books';
+
+const getArticleSlug = (collectionEntry: { id: string }) => {
+	const id = collectionEntry.id;
+	const parts = id.replace(/\.(md|mdx)$/, '').split('/');
+	return parts.slice(1).join('/');
+};
+
+const allEntries = await getCollection('articles');
+const otherEntries = allEntries.filter((e) => e.id !== entry.id);
+const sameCategoryPool = otherEntries.filter((e) => e.data.category === entry.data.category);
+
+const rng = mulberry32(hashString(typeof entry.id === 'string' ? entry.id : String(entry.data.title)));
+const desiredCount = 3 + Math.floor(rng() * 5);
+const linkPool = shuffleInPlace([...sameCategoryPool], rng);
+const internalLinkEntries = linkPool.slice(0, Math.min(desiredCount, 7, linkPool.length));
+type InternalLinkItem = { phrase: string; href: string; title: string };
+const internalLinkItems: InternalLinkItem[] = internalLinkEntries.map((linked) => {
+	const variation = INTERNAL_LINK_VARIATIONS[Math.floor(rng() * INTERNAL_LINK_VARIATIONS.length)] ?? '';
+	const phrase = variation.trim();
+	const href = `/${linked.data.category}/${getArticleSlug(linked)}`;
+	return { phrase, href, title: linked.data.title };
+});
+const internalLinkItemsJson = JSON.stringify(internalLinkItems).replace(/</g, '\\u003c');
+
+const relatedEntries = (await getCollection('articles', (e) => e.data.category === entry.data.category))
+	.filter((e) => e.id !== entry.id)
+	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+	.slice(0, 3);
+
+const selectedAuthor = (() => {
+	const match = entry.data.author ? AUTHORS.find((a) => a.name === entry.data.author) : undefined;
+	if (match) return match;
+	const idx = hashString(typeof entry.id === 'string' ? entry.id : String(entry.data.title)) % AUTHORS.length;
+	return AUTHORS[idx];
+})();
+
+const { Content } = await render(entry);
+---
+
+<Layout
+	title={`${entry.data.title} | Akboheim`}
+	description={entry.data.description ?? entry.data.title}
+	canonical={`https://akboheim.com/${entry.data.category}/${typeof entry.id === 'string' ? entry.id.replace(/\.(md|mdx)$/, '').split('/').slice(1).join('/') : ''}`}
+	author={selectedAuthor.name}
+	ogType="article"
+	image={entry.data.featuredImage ?? entry.data.heroImage}
+	imageAlt={entry.data.title}
+	publishedTime={entry.data.date.toISOString()}
+	modifiedTime={entry.data.date.toISOString()}
+	tags={entry.data.tags}
+	section={categoryInfo?.label ?? entry.data.category}
+>
+	<main class="article-page">
+		<div class="article-container">
+			<article class="article">
+				{entry.data.featuredImage && (
+					<div class:list={["featured-image", isBooksCategory ? "featured-image--book" : ""]}>
+						<img
+							class:list={[isBooksCategory ? "featured-image__img--book" : ""]}
+							src={entry.data.featuredImage}
+							alt={entry.data.title}
+							loading="eager"
+						/>
+					</div>
+				)}
+				
+				<header class="article-header">
+					<div class="article-meta">
+						<span class="category">{categoryInfo?.label ?? entry.data.category}</span>
+						<span class="separator">·</span>
+						<time datetime={entry.data.date.toISOString()}>
+							{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+						</time>
+						<>
+							<span class="separator">·</span>
+							<span class="author">Authors: {selectedAuthor.name}</span>
+						</>
+					</div>
+					<h1 class="article-title">{entry.data.title}</h1>
+					{entry.data.description && (
+						<p class="article-description">{entry.data.description}</p>
+					)}
+				</header>
+
+				<div class="article-content">
+					<Content />
+				</div>
+
+				{internalLinkItems.length > 0 && (
+					<>
+						<script type="application/json" id="internal-links-data" set:html={internalLinkItemsJson} />
+						<script is:inline>
+							(() => {
+								const dataEl = document.getElementById('internal-links-data');
+								const root = document.querySelector('.article-content');
+								if (!(dataEl instanceof HTMLScriptElement) || !(root instanceof HTMLElement)) return;
+
+								/** @type {{ phrase: string; href: string; title: string }[]} */
+								let items = [];
+								try {
+									items = JSON.parse(dataEl.textContent || '[]');
+								} catch {
+									return;
+								}
+
+								const paragraphs = Array.from(root.querySelectorAll('p')).filter((p) => {
+									if (!(p instanceof HTMLParagraphElement)) return false;
+									if (p.classList.contains('internal-link')) return false;
+									if (p.querySelector('a')) return true;
+									return (p.textContent || '').trim().length > 0;
+								});
+
+								const maxLinks = Math.min(items.length, 7);
+								if (maxLinks === 0 || paragraphs.length === 0) return;
+
+								const usableLinks = items.slice(0, maxLinks);
+								const total = paragraphs.length;
+								const usedIndices = new Set();
+
+								for (let i = 0; i < usableLinks.length; i++) {
+									const target = Math.floor(((i + 1) * total) / (usableLinks.length + 1));
+									let idx = Math.min(Math.max(target, 0), total - 1);
+									while (usedIndices.has(idx) && idx < total - 1) idx++;
+									while (usedIndices.has(idx) && idx > 0) idx--;
+									if (usedIndices.has(idx)) continue;
+									usedIndices.add(idx);
+
+									const { phrase, href, title } = usableLinks[i];
+									const p = document.createElement('p');
+									p.className = 'internal-link';
+									p.append(document.createTextNode(phrase ? `${phrase} ` : ''));
+									const a = document.createElement('a');
+									a.href = href;
+									a.textContent = title;
+									p.append(a);
+
+									const anchor = paragraphs[idx];
+									anchor.insertAdjacentElement('afterend', p);
+								}
+							})();
+						</script>
+					</>
+				)}
+
+				{relatedEntries.length > 0 && (
+					<section class="related">
+						<h2 class="related-title">Related Articles</h2>
+						<div class="related-grid">
+							{relatedEntries.map((related) => (
+								<article class="related-card">
+									<a
+										class="related-link"
+										href={`/${related.data.category}/${getArticleSlug(related)}`}
+										aria-label={related.data.title}
+									></a>
+									{related.data.featuredImage && (
+										<div class="related-image">
+											<img src={related.data.featuredImage} alt={related.data.title} loading="lazy" />
+										</div>
+									)}
+									<div class="related-content">
+										<p class="related-meta">
+											{related.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+										</p>
+										<span class="related-card-title" aria-hidden="true">{related.data.title}</span>
+									</div>
+								</article>
+							))}
+						</div>
+					</section>
+				)}
+			</article>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.article-page {
+		background: #ffffff;
+		min-height: 100vh;
+		padding: 40px 0;
+	}
+
+	.article-container {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 0 24px;
+	}
+
+	.featured-image {
+		width: 100%;
+		height: 400px;
+		overflow: hidden;
+		border-radius: 12px;
+		margin-bottom: 32px;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+	}
+
+	.featured-image--book {
+		height: auto;
+		max-width: 420px;
+		margin-left: auto;
+		margin-right: auto;
+		background: #fff;
+		padding: 10px;
+	}
+
+	.featured-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.6s ease;
+	}
+
+	.featured-image__img--book {
+		height: auto;
+		max-height: 520px;
+		object-fit: contain;
+		transition: none;
+	}
+
+	.featured-image:hover img {
+		transform: scale(1.02);
+	}
+
+	.article {
+		background: white;
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.article-header {
+		padding: 0 0 32px;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+		margin-bottom: 48px;
+	}
+
+	.article-meta {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 24px;
+		font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+		font-size: 13px;
+		color: #666;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		font-weight: 500;
+		flex-wrap: wrap;
+	}
+
+	.category {
+		color: #8b0000;
+		font-weight: 600;
+	}
+
+	.separator {
+		opacity: 0.4;
+	}
+
+	.author {
+		color: #666;
+		font-weight: 500;
+	}
+
+	.article-title {
+		font-family: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+		font-size: clamp(36px, 5vw, 56px);
+		font-weight: 900;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: #1a1a1a;
+		margin: 0 0 24px;
+	}
+
+	.article-description {
+		font-family: 'Crimson Text', 'Georgia', serif;
+		font-size: 20px;
+		line-height: 1.6;
+		color: #444;
+		margin: 0;
+		font-style: italic;
+	}
+
+	.article-content {
+		font-family: 'Crimson Text', 'Georgia', serif;
+		font-size: 19px;
+		line-height: 1.8;
+		color: #333;
+	}
+
+	.internal-link {
+		margin: 0 0 18px;
+	}
+
+	.internal-link:last-child {
+		margin-bottom: 0;
+	}
+
+	.related {
+		margin-top: 56px;
+		padding-top: 40px;
+		border-top: 1px solid rgba(0, 0, 0, 0.08);
+	}
+
+	.related-title {
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-size: 28px;
+		font-weight: 800;
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		color: #1a1a1a;
+		margin: 0 0 18px;
+	}
+
+	.related-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 14px;
+	}
+
+	.related-card {
+		position: relative;
+		background: #fff;
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		border-radius: 14px;
+		overflow: hidden;
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+	}
+
+	.related-link {
+		position: absolute;
+		inset: 0;
+		z-index: 10;
+		display: block;
+		border-radius: 14px;
+	}
+
+	.related-link:focus-visible {
+		outline: 3px solid rgba(139, 0, 0, 0.55);
+		outline-offset: 2px;
+	}
+
+	.related-card:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+	}
+
+	.related-image,
+	.related-content {
+		position: relative;
+		z-index: 1;
+		pointer-events: none;
+	}
+
+	.related-image {
+		height: 160px;
+		overflow: hidden;
+	}
+
+	.related-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.6s ease;
+	}
+
+	.related-card:hover .related-image img {
+		transform: scale(1.05);
+	}
+
+	.related-content {
+		padding: 14px 16px 16px;
+	}
+
+	.related-meta {
+		margin: 0 0 10px;
+		font-size: 12px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: rgba(0, 0, 0, 0.7);
+	}
+
+	.related-card-title {
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-weight: 800;
+		font-size: 18px;
+		line-height: 1.25;
+		color: #1a1a1a;
+		display: block;
+	}
+
+	.article-content :global(img) {
+		max-width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	.article-content :global(.review-card) {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 16px;
+		padding: 18px;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		border-radius: 14px;
+		background: #fbfbfb;
+		box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+		margin: 28px 0;
+	}
+
+	.article-content :global(.review-card__media) {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: flex-start;
+		padding: 6px 0;
+	}
+
+	.article-content :global(.review-card__media img) {
+		width: min(220px, 100%);
+		max-height: 320px;
+		object-fit: contain;
+		border-radius: 10px;
+		box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
+	}
+
+	.article-content :global(.review-card__body) {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.article-content :global(.review-card__title) {
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-weight: 800;
+		font-size: 22px;
+		line-height: 1.2;
+		margin: 0;
+		color: #1a1a1a;
+	}
+
+	.article-content :global(.review-card__meta) {
+		font-family: 'Inter', sans-serif;
+		font-size: 12px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: rgba(0, 0, 0, 0.65);
+		margin: 0;
+	}
+
+	.article-content :global(.review-card__table) {
+		width: 100%;
+		border-collapse: collapse;
+		font-family: 'Inter', sans-serif;
+		font-size: 13px;
+		color: rgba(0, 0, 0, 0.78);
+	}
+
+	.article-content :global(.review-card__table th),
+	.article-content :global(.review-card__table td) {
+		padding: 10px 10px;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+		vertical-align: top;
+		text-align: left;
+	}
+
+	.article-content :global(.review-card__table th) {
+		font-weight: 700;
+		color: #1a1a1a;
+		width: 42%;
+	}
+
+	.article-content :global(.review-card__cta) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		width: 100%;
+		min-height: 46px;
+		padding: 12px 16px;
+		border-radius: 999px;
+		background: #8b0000;
+		color: #fff;
+		text-decoration: none;
+		font-family: 'Inter', sans-serif;
+		font-size: 13px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		pointer-events: auto;
+	}
+
+	.article-content :global(.review-card__cta:hover) {
+		background: #660000;
+		color: #fff;
+	}
+
+	@media (min-width: 720px) {
+		.article-content :global(.review-card) {
+			grid-template-columns: 240px 1fr;
+			align-items: start;
+			gap: 20px;
+			padding: 20px;
+		}
+
+		.article-content :global(.review-card__cta) {
+			width: fit-content;
+		}
+	}
+
+	.article-content :global(p) {
+		margin: 0 0 24px;
+		text-align: justify;
+	}
+
+	.article-content :global(h2) {
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-size: 32px;
+		font-weight: 700;
+		line-height: 1.2;
+		color: #1a1a1a;
+		margin: 48px 0 24px;
+		letter-spacing: -0.01em;
+	}
+
+	.article-content :global(h3) {
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-size: 24px;
+		font-weight: 600;
+		line-height: 1.3;
+		color: #1a1a1a;
+		margin: 36px 0 20px;
+	}
+
+	.article-content :global(ul),
+	.article-content :global(ol) {
+		margin: 24px 0;
+		padding-left: 32px;
+	}
+
+	.article-content :global(li) {
+		margin-bottom: 12px;
+	}
+
+	.article-content :global(blockquote) {
+		margin: 32px 0;
+		padding: 24px 32px;
+		border-left: 4px solid #8b0000;
+		background: linear-gradient(to right, rgba(139, 0, 0, 0.05), transparent);
+		font-style: italic;
+		color: #555;
+	}
+
+	.article-content :global(a) {
+		color: #8b0000;
+		text-decoration: none;
+		border-bottom: 1px solid transparent;
+		transition: border-color 0.3s ease;
+	}
+
+	.article-content :global(a:hover) {
+		border-bottom-color: #8b0000;
+	}
+
+	.article-content :global(strong) {
+		font-weight: 700;
+		color: #1a1a1a;
+	}
+
+	.article-content :global(em) {
+		font-style: italic;
+		color: #555;
+	}
+
+	@media (min-width: 768px) {
+		.article-container {
+			padding: 0 40px;
+		}
+
+		.featured-image {
+			height: 500px;
+			margin-bottom: 64px;
+		}
+
+		.featured-image--book {
+			max-width: 460px;
+			padding: 12px;
+		}
+
+		.related-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 18px;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.article-container {
+			padding: 0 48px;
+		}
+
+		.article-content {
+			font-size: 20px;
+		}
+
+		.related-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+</style>

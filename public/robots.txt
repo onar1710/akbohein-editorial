@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://akboheim.com/sitemap-index.xml
