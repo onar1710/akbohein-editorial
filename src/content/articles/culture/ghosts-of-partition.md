@@ -4,7 +4,7 @@ description: "The invisible wounds of India's Partition continue to haunt millio
 date: 2026-04-21
 category: "culture"
 author: "Editorial"
-featuredImage: "/imagen-article/culture/ghosts-of-partition-haunting-legacy.jpg"
+featuredImage: "/imagen-article/culture/ghosts-of-partition-haunting-legacy.png"
 tags: ["ghosts of partition", "partition trauma", "India Pakistan history", "intergenerational trauma", "South Asian identity", "1947 partition", "cultural memory", "refugee experience"]
 ---
 

@@ -64,8 +64,17 @@ export const GET: APIRoute = async ({ site }) => {
 
 	for (const entry of articles) {
 		const id = entry.id;
-		const rawSlug = typeof id === 'string' ? id.replace(/\.(md|mdx)$/i, '').split('/').slice(1).join('/') : '';
-		const loc = `${base}${ensureTrailingSlash(`/${entry.data.category}/${rawSlug}`)}`;
+		const key = typeof id === 'string' ? id.replace(/\.(md|mdx)$/i, '') : '';
+		const rawSlug = key ? key.split('/').slice(1).join('/') : '';
+		let pathname: string;
+		if (key === 'culture/ghosts-of-partition') {
+			pathname = '/ghosts-of-partition';
+		} else if (key === 'literature/newnhamwrites-never-ever-underestimate-a-child') {
+			pathname = '/newnhamwrites-never-ever-underestimate-a-child';
+		} else {
+			pathname = `/${entry.data.category}/${rawSlug}`;
+		}
+		const loc = `${base}${ensureTrailingSlash(pathname)}`;
 		urls.push({
 			loc,
 			lastmod: formatLastmod(entry.data.date),

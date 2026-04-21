@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { CATEGORIES } from '../site';
+import { CATEGORIES, getArticleHref } from '../site';
 import { getCollection } from 'astro:content';
 
 const entries = (await getCollection('articles')).sort(
@@ -9,16 +9,7 @@ const entries = (await getCollection('articles')).sort(
 
 const byCategory = new Map<string, typeof entries>();
 
-const getArticleSlug = (entry: (typeof entries)[number]) => {
-	const raw =
-		(typeof entry.id === 'string' && entry.id) ||
-		// @ts-expect-error: support non-loader collections
-		(typeof entry.slug === 'string' && entry.slug) ||
-		'';
-	if (!raw) return '';
-	const parts = raw.replace(/\.(md|mdx)$/, '').split('/');
-	return parts.length >= 2 ? parts.slice(1).join('/') : '';
-};
+const getHref = (entry: (typeof entries)[number]) => getArticleHref(entry as unknown as { id: string; data: { category: string } });
 
 for (const c of CATEGORIES) {
 	byCategory.set(
@@ -52,7 +43,7 @@ for (const c of CATEGORIES) {
 					<article class="article-card" style="--delay: {entryIndex * 0.1}s">
 						<a
 							class="article-link"
-							href={`/${c.slug}/${getArticleSlug(entry)}`}
+							href={getHref(entry)}
 							aria-label={entry.data.title}
 						></a>
 						{entry.data.featuredImage && (

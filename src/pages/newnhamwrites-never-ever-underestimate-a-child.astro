@@ -1,0 +1,156 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { render, getCollection } from 'astro:content';
+import { CATEGORIES } from '../site';
+
+const entry = (await getCollection('articles')).find(
+	(e) => e.id.replace(/\.(md|mdx)$/i, '') === 'literature/newnhamwrites-never-ever-underestimate-a-child',
+);
+
+if (!entry) {
+	throw new Error('Article not found: literature/newnhamwrites-never-ever-underestimate-a-child');
+}
+
+const categoryInfo = CATEGORIES.find((c) => c.slug === entry.data.category);
+const { Content } = await render(entry);
+---
+
+<Layout
+	title={`${entry.data.title} | Akboheim`}
+	description={entry.data.description ?? entry.data.title}
+	canonical="http://akboheim.com/newnhamwrites-never-ever-underestimate-a-child"
+	author={entry.data.author ?? 'Editorial'}
+	ogType="article"
+	image={entry.data.featuredImage ?? entry.data.heroImage}
+	imageAlt={entry.data.title}
+	publishedTime={entry.data.date.toISOString()}
+	modifiedTime={entry.data.date.toISOString()}
+	tags={entry.data.tags}
+	section={categoryInfo?.label ?? entry.data.category}
+>
+	<main class="article-page">
+		<div class="article-container">
+			<article class="article">
+				{entry.data.featuredImage && (
+					<div class="featured-image">
+						<img src={entry.data.featuredImage} alt={entry.data.title} loading="eager" />
+					</div>
+				)}
+
+				<header class="article-header">
+					<div class="article-meta">
+						<span class="category">{categoryInfo?.label ?? entry.data.category}</span>
+						<span class="separator">·</span>
+						<time datetime={entry.data.date.toISOString()}>
+							{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+						</time>
+					</div>
+					<h1 class="article-title">{entry.data.title}</h1>
+					{entry.data.description && <p class="article-description">{entry.data.description}</p>}
+				</header>
+
+				<div class="article-content">
+					<Content />
+				</div>
+			</article>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.article-page {
+		background: #ffffff;
+		min-height: 100vh;
+		padding: 40px 0;
+	}
+	.article-container {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 0 24px;
+	}
+	.featured-image {
+		width: 100%;
+		height: 400px;
+		overflow: hidden;
+		border-radius: 12px;
+		margin-bottom: 32px;
+	}
+	.featured-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.article-header {
+		margin-bottom: 24px;
+	}
+	.article-meta {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-family: 'Inter', sans-serif;
+		font-size: 13px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: rgba(0, 0, 0, 0.7);
+		margin-bottom: 12px;
+		flex-wrap: wrap;
+	}
+	.separator {
+		opacity: 0.6;
+	}
+	.article-title {
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-size: clamp(32px, 5vw, 46px);
+		line-height: 1.1;
+		letter-spacing: -0.03em;
+		margin: 0 0 12px;
+		color: #121212;
+		font-weight: 900;
+	}
+	.article-description {
+		margin: 0;
+		font-size: 18px;
+		line-height: 1.55;
+		color: rgba(0, 0, 0, 0.75);
+	}
+	.article-content {
+		font-size: 18px;
+		line-height: 1.75;
+		color: rgba(0, 0, 0, 0.85);
+	}
+	.article-content :global(h2) {
+		margin-top: 36px;
+		margin-bottom: 12px;
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-weight: 900;
+		font-size: 26px;
+		line-height: 1.2;
+		color: #1a1a1a;
+	}
+	.article-content :global(h3) {
+		margin-top: 24px;
+		margin-bottom: 10px;
+		font-family: 'Playfair Display', 'Georgia', serif;
+		font-weight: 800;
+		font-size: 20px;
+		line-height: 1.25;
+		color: #1a1a1a;
+	}
+	.article-content :global(p) {
+		margin: 0 0 16px;
+	}
+	.article-content :global(img) {
+		max-width: 100%;
+		height: auto;
+		display: block;
+	}
+	@media (min-width: 1024px) {
+		.article-container {
+			padding: 0 48px;
+		}
+		.article-content {
+			font-size: 20px;
+		}
+	}
+</style>

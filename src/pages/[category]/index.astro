@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { CATEGORIES } from '../../site';
+import { CATEGORIES, getArticleHref } from '../../site';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -18,12 +18,7 @@ const entries = (await getCollection('articles', (e) => e.data.category === cate
 	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
-const getArticleSlug = (entry: (typeof entries)[number]) => {
-	const id = entry.id;
-	if (typeof id !== 'string') return '';
-	const parts = id.replace(/\.(md|mdx)$/, '').split('/');
-	return parts.slice(1).join('/');
-};
+const getHref = (entry: (typeof entries)[number]) => getArticleHref(entry as unknown as { id: string; data: { category: string } });
 ---
 
 <Layout>
@@ -36,7 +31,7 @@ const getArticleSlug = (entry: (typeof entries)[number]) => {
 			<article class="card">
 				<a
 					class="card-link"
-					href={`/${categoryInfo.slug}/${getArticleSlug(entry)}`}
+					href={getHref(entry)}
 					aria-label={entry.data.title}
 				></a>
 				{entry.data.featuredImage && (

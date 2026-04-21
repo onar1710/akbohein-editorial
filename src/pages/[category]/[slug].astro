@@ -1,6 +1,6 @@
 	---
 import Layout from '../../layouts/Layout.astro';
-import { CATEGORIES } from '../../site';
+import { CATEGORIES, getArticleHref } from '../../site';
 import { getCollection, render } from 'astro:content';
 
 const AUTHORS = [
@@ -138,8 +138,12 @@ const shuffleInPlace = <T,>(arr: T[], rnd: () => number) => {
 
 export async function getStaticPaths() {
 	const entries = await getCollection('articles');
+	const filtered = entries.filter((e) => {
+		const key = e.id.replace(/\.(md|mdx)$/i, '');
+		return key !== 'culture/ghosts-of-partition' && key !== 'literature/newnhamwrites-never-ever-underestimate-a-child';
+	});
 
-	return entries.map((entry) => ({
+	return filtered.map((entry) => ({
 		params: {
 			category: entry.id.replace(/\.(md|mdx)$/, '').split('/')[0],
 			slug: entry.id.replace(/\.(md|mdx)$/, '').split('/').slice(1).join('/'),
@@ -170,7 +174,7 @@ type InternalLinkItem = { phrase: string; href: string; title: string };
 const internalLinkItems: InternalLinkItem[] = internalLinkEntries.map((linked) => {
 	const variation = INTERNAL_LINK_VARIATIONS[Math.floor(rng() * INTERNAL_LINK_VARIATIONS.length)] ?? '';
 	const phrase = variation.trim();
-	const href = `/${linked.data.category}/${getArticleSlug(linked)}`;
+	const href = getArticleHref(linked as unknown as { id: string; data: { category: string } });
 	return { phrase, href, title: linked.data.title };
 });
 const internalLinkItemsJson = JSON.stringify(internalLinkItems).replace(/</g, '\\u003c');
@@ -187,13 +191,20 @@ const selectedAuthor = (() => {
 	return AUTHORS[idx];
 })();
 
+const entryKey = typeof entry.id === 'string' ? entry.id.replace(/\.(md|mdx)$/, '') : '';
+const canonicalPath =
+	entryKey === 'culture/ghosts-of-partition'
+		? '/ghosts-of-partition'
+		: `/${entry.data.category}/${entryKey ? entryKey.split('/').slice(1).join('/') : ''}`;
+const canonicalUrl = `https://akboheim.com${canonicalPath}`;
+
 const { Content } = await render(entry);
 ---
 
 <Layout
 	title={`${entry.data.title} | Akboheim`}
 	description={entry.data.description ?? entry.data.title}
-	canonical={`https://akboheim.com/${entry.data.category}/${typeof entry.id === 'string' ? entry.id.replace(/\.(md|mdx)$/, '').split('/').slice(1).join('/') : ''}`}
+	canonical={canonicalUrl}
 	author={selectedAuthor.name}
 	ogType="article"
 	image={entry.data.featuredImage ?? entry.data.heroImage}
@@ -303,7 +314,7 @@ const { Content } = await render(entry);
 								<article class="related-card">
 									<a
 										class="related-link"
-										href={`/${related.data.category}/${getArticleSlug(related)}`}
+										href={getArticleHref(related as unknown as { id: string; data: { category: string } })}
 										aria-label={related.data.title}
 									></a>
 									{related.data.featuredImage && (
