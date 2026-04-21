@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://akboheim.com/sitemap-index.xml
+Sitemap: https://akboheim.com/sitemap.xml
