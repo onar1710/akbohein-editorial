@@ -1,7 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { render, getCollection } from 'astro:content';
-import { CATEGORIES } from '../site';
+import { CATEGORIES, getRotatingAuthor } from '../site';
+import RelatedArticles from '../components/RelatedArticles.astro';
+import AutorsArticle from '../components/autors-article.astro';
 
 const entry = (await getCollection('articles')).find(
 	(e) => e.id.replace(/\.(md|mdx)$/i, '') === 'culture/ghosts-of-partition',
@@ -12,6 +14,7 @@ if (!entry) {
 }
 
 const categoryInfo = CATEGORIES.find((c) => c.slug === entry.data.category);
+const selectedAuthor = getRotatingAuthor(entry);
 const { Content } = await render(entry);
 ---
 
@@ -19,7 +22,7 @@ const { Content } = await render(entry);
 	title={`${entry.data.title} | Akboheim`}
 	description={entry.data.description ?? entry.data.title}
 	canonical="https://akboheim.com/ghosts-of-partition"
-	author={entry.data.author ?? 'Editorial'}
+	author={selectedAuthor.name}
 	ogType="article"
 	image={entry.data.featuredImage ?? entry.data.heroImage}
 	imageAlt={entry.data.title}
@@ -41,9 +44,7 @@ const { Content } = await render(entry);
 					<div class="article-meta">
 						<span class="category">{categoryInfo?.label ?? entry.data.category}</span>
 						<span class="separator">·</span>
-						<time datetime={entry.data.date.toISOString()}>
-							{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-						</time>
+						<AutorsArticle entry={entry} date={entry.data.date} />
 					</div>
 					<h1 class="article-title">{entry.data.title}</h1>
 					{entry.data.description && <p class="article-description">{entry.data.description}</p>}
@@ -52,6 +53,8 @@ const { Content } = await render(entry);
 				<div class="article-content">
 					<Content />
 				</div>
+
+				<RelatedArticles currentId={entry.id} category={entry.data.category} count={4} />
 			</article>
 		</div>
 	</main>

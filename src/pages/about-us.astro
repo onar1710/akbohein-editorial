@@ -100,6 +100,36 @@ import Layout from '../layouts/Layout.astro';
 				</div>
 			</section>
 
+			<section class="inspiration-section">
+				<h2>EDITORIAL INSPIRATION</h2>
+				<div class="inspiration-content">
+					<div class="inspiration-photo">
+						<img src="/abouts/writer-Amna-Boheim.jpg" alt="Amna K. Boheim" loading="lazy">
+					</div>
+					<div class="inspiration-text">
+						<p>
+							This editorial is inspired by the writer Amna K. Boheim, whose work blends mystery, the supernatural, and deeply atmospheric storytelling. Her novels and literary perspective serve as a creative reference for the tone and values this editorial aims to represent.
+						</p>
+						<div class="inspiration-social">
+							<a
+								href="https://www.facebook.com/akboheim/?locale=ko_KR"
+								target="_blank"
+								rel="noopener noreferrer"
+								aria-label="Akboheim on Facebook"
+							>
+								<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+									<path
+										fill="currentColor"
+										d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.513c-1.49 0-1.953.925-1.953 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+									/>
+								</svg>
+								<span>Facebook</span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</section>
+
 			<section class="content-section">
 				<h2>WHAT WE PUBLISH</h2>
 				<div class="content-grid">
@@ -355,6 +385,56 @@ import Layout from '../layouts/Layout.astro';
 		margin-top: 0;
 	}
 
+	.inspiration-section {
+		margin-top: 4rem;
+	}
+
+	.inspiration-content {
+		display: grid;
+		grid-template-columns: 140px 1fr;
+		gap: 1.25rem;
+		align-items: center;
+		margin-top: 1.5rem;
+	}
+
+	.inspiration-text p {
+		margin-bottom: 0.75rem;
+	}
+
+	.inspiration-social a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #8b0000;
+		text-decoration: none;
+		font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+		font-size: 14px;
+		font-weight: 600;
+		letter-spacing: 0.01em;
+	}
+
+	.inspiration-social a:hover {
+		color: #a52a2a;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.inspiration-photo {
+		width: 140px;
+		height: 140px;
+		border-radius: 999px;
+		overflow: hidden;
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		background: rgba(0, 0, 0, 0.02);
+	}
+
+	.inspiration-photo img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
 	.content-grid {
 		display: grid;
 		gap: 2rem;
@@ -448,6 +528,12 @@ import Layout from '../layouts/Layout.astro';
 
 		.team-member {
 			gap: 1.5rem;
+		}
+
+		.inspiration-content {
+			grid-template-columns: 1fr;
+			justify-items: center;
+			text-align: center;
 		}
 
 		.content-grid,

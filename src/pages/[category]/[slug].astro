@@ -1,13 +1,9 @@
 	---
 import Layout from '../../layouts/Layout.astro';
-import { CATEGORIES, getArticleHref } from '../../site';
+import { CATEGORIES, getArticleHref, getRotatingAuthor } from '../../site';
 import { getCollection, render } from 'astro:content';
-
-const AUTHORS = [
-	{ name: 'Ethan Walker', photo: '/abouts/Ethan-Walker.jpg' },
-	{ name: 'Mason Whitmore', photo: '/abouts/Mason-Whitmore.jpg' },
-	{ name: 'Caleb Harrison', photo: '/abouts/Caleb-Harrison.jpg' },
-];
+import RelatedArticles from '../../components/RelatedArticles.astro';
+import AutorsArticle from '../../components/autors-article.astro';
 
 const INTERNAL_LINK_VARIATIONS = [
 	"You can also explore more related information by reading about",
@@ -179,17 +175,7 @@ const internalLinkItems: InternalLinkItem[] = internalLinkEntries.map((linked) =
 });
 const internalLinkItemsJson = JSON.stringify(internalLinkItems).replace(/</g, '\\u003c');
 
-const relatedEntries = (await getCollection('articles', (e) => e.data.category === entry.data.category))
-	.filter((e) => e.id !== entry.id)
-	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-	.slice(0, 3);
-
-const selectedAuthor = (() => {
-	const match = entry.data.author ? AUTHORS.find((a) => a.name === entry.data.author) : undefined;
-	if (match) return match;
-	const idx = hashString(typeof entry.id === 'string' ? entry.id : String(entry.data.title)) % AUTHORS.length;
-	return AUTHORS[idx];
-})();
+const selectedAuthor = getRotatingAuthor(entry);
 
 const entryKey = typeof entry.id === 'string' ? entry.id.replace(/\.(md|mdx)$/, '') : '';
 const canonicalPath =
@@ -232,13 +218,7 @@ const { Content } = await render(entry);
 					<div class="article-meta">
 						<span class="category">{categoryInfo?.label ?? entry.data.category}</span>
 						<span class="separator">·</span>
-						<time datetime={entry.data.date.toISOString()}>
-							{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-						</time>
-						<>
-							<span class="separator">·</span>
-							<span class="author">Authors: {selectedAuthor.name}</span>
-						</>
+						<AutorsArticle entry={entry} date={entry.data.date} />
 					</div>
 					<h1 class="article-title">{entry.data.title}</h1>
 					{entry.data.description && (
@@ -306,33 +286,7 @@ const { Content } = await render(entry);
 					</>
 				)}
 
-				{relatedEntries.length > 0 && (
-					<section class="related">
-						<h2 class="related-title">Related Articles</h2>
-						<div class="related-grid">
-							{relatedEntries.map((related) => (
-								<article class="related-card">
-									<a
-										class="related-link"
-										href={getArticleHref(related as unknown as { id: string; data: { category: string } })}
-										aria-label={related.data.title}
-									></a>
-									{related.data.featuredImage && (
-										<div class="related-image">
-											<img src={related.data.featuredImage} alt={related.data.title} loading="lazy" />
-										</div>
-									)}
-									<div class="related-content">
-										<p class="related-meta">
-											{related.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-										</p>
-										<span class="related-card-title" aria-hidden="true">{related.data.title}</span>
-									</div>
-								</article>
-							))}
-						</div>
-					</section>
-				)}
+				<RelatedArticles currentId={entry.id} category={entry.data.category} count={4} />
 			</article>
 		</div>
 	</main>
@@ -422,11 +376,6 @@ const { Content } = await render(entry);
 		opacity: 0.4;
 	}
 
-	.author {
-		color: #666;
-		font-weight: 500;
-	}
-
 	.article-title {
 		font-family: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
 		font-size: clamp(36px, 5vw, 56px);
@@ -459,101 +408,6 @@ const { Content } = await render(entry);
 
 	.internal-link:last-child {
 		margin-bottom: 0;
-	}
-
-	.related {
-		margin-top: 56px;
-		padding-top: 40px;
-		border-top: 1px solid rgba(0, 0, 0, 0.08);
-	}
-
-	.related-title {
-		font-family: 'Playfair Display', 'Georgia', serif;
-		font-size: 28px;
-		font-weight: 800;
-		line-height: 1.2;
-		letter-spacing: -0.01em;
-		color: #1a1a1a;
-		margin: 0 0 18px;
-	}
-
-	.related-grid {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 14px;
-	}
-
-	.related-card {
-		position: relative;
-		background: #fff;
-		border: 1px solid rgba(0, 0, 0, 0.08);
-		border-radius: 14px;
-		overflow: hidden;
-		transition: transform 0.3s ease, box-shadow 0.3s ease;
-	}
-
-	.related-link {
-		position: absolute;
-		inset: 0;
-		z-index: 10;
-		display: block;
-		border-radius: 14px;
-	}
-
-	.related-link:focus-visible {
-		outline: 3px solid rgba(139, 0, 0, 0.55);
-		outline-offset: 2px;
-	}
-
-	.related-card:hover {
-		transform: translateY(-3px);
-		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
-	}
-
-	.related-image,
-	.related-content {
-		position: relative;
-		z-index: 1;
-		pointer-events: none;
-	}
-
-	.related-image {
-		height: 160px;
-		overflow: hidden;
-	}
-
-	.related-image img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform 0.6s ease;
-	}
-
-	.related-card:hover .related-image img {
-		transform: scale(1.05);
-	}
-
-	.related-content {
-		padding: 14px 16px 16px;
-	}
-
-	.related-meta {
-		margin: 0 0 10px;
-		font-size: 12px;
-		font-family: 'Inter', sans-serif;
-		font-weight: 700;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: rgba(0, 0, 0, 0.7);
-	}
-
-	.related-card-title {
-		font-family: 'Playfair Display', 'Georgia', serif;
-		font-weight: 800;
-		font-size: 18px;
-		line-height: 1.25;
-		color: #1a1a1a;
-		display: block;
 	}
 
 	.article-content :global(img) {
@@ -753,11 +607,6 @@ const { Content } = await render(entry);
 			max-width: 460px;
 			padding: 12px;
 		}
-
-		.related-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 18px;
-		}
 	}
 
 	@media (min-width: 1024px) {
@@ -767,10 +616,6 @@ const { Content } = await render(entry);
 
 		.article-content {
 			font-size: 20px;
-		}
-
-		.related-grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 </style>
