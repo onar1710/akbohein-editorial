@@ -1,0 +1,193 @@
+---
+---
+
+<div id="cookie-banner" class="cookie" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
+	<div class="cookie-inner">
+		<div class="cookie-text">
+			<h2 class="cookie-title">We use cookies</h2>
+			<p class="cookie-description">
+				We use cookies to improve your experience and to support advertising through Google AdSense. You can accept or reject non-essential cookies. Learn more in our
+				<a href="/cookie-policy">Cookie Policy</a>.
+			</p>
+		</div>
+		<div class="cookie-actions">
+			<button id="cookie-reject" class="cookie-btn ghost" type="button">Reject</button>
+			<button id="cookie-accept" class="cookie-btn primary" type="button">Accept</button>
+		</div>
+	</div>
+</div>
+
+<script is:inline>
+	const STORAGE_KEY = 'akboheim_cookie_consent';
+	const banner = document.getElementById('cookie-banner');
+	const acceptBtn = document.getElementById('cookie-accept');
+	const rejectBtn = document.getElementById('cookie-reject');
+
+	function setCookie(name, value, days) {
+		const maxAge = days * 24 * 60 * 60;
+		document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+	}
+
+	function getConsent() {
+		try {
+			return window.localStorage.getItem(STORAGE_KEY);
+		} catch {
+			return null;
+		}
+	}
+
+	function setConsent(value) {
+		try {
+			window.localStorage.setItem(STORAGE_KEY, value);
+		} catch {}
+		setCookie(STORAGE_KEY, value, 180);
+	}
+
+	function show() {
+		if (!banner) return;
+		banner.hidden = false;
+		banner.setAttribute('aria-hidden', 'false');
+		requestAnimationFrame(() => banner.classList.add('is-visible'));
+	}
+
+	function hide() {
+		if (!banner) return;
+		banner.classList.remove('is-visible');
+		banner.setAttribute('aria-hidden', 'true');
+		window.setTimeout(() => {
+			banner.hidden = true;
+		}, 200);
+	}
+
+	const consent = getConsent();
+	if (!consent) {
+		show();
+	}
+
+	acceptBtn?.addEventListener('click', () => {
+		setConsent('accepted');
+		hide();
+	});
+
+	rejectBtn?.addEventListener('click', () => {
+		setConsent('rejected');
+		hide();
+	});
+</script>
+
+<style>
+	.cookie {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 10000;
+		padding: 16px;
+		display: flex;
+		justify-content: center;
+		pointer-events: none;
+		opacity: 0;
+		transform: translateY(10px);
+		transition: opacity 0.2s ease, transform 0.2s ease;
+	}
+
+	.cookie.is-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.cookie-inner {
+		pointer-events: auto;
+		width: min(980px, 100%);
+		background: rgba(255, 255, 255, 0.96);
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		border-radius: 16px;
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+		padding: 18px;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 14px;
+		backdrop-filter: blur(10px);
+	}
+
+	.cookie-title {
+		font-family: var(--font-serif);
+		font-size: 18px;
+		font-weight: 900;
+		letter-spacing: -0.02em;
+		margin: 0 0 6px;
+		color: #1a1a1a;
+	}
+
+	.cookie-description {
+		font-family: var(--font-body);
+		font-size: 14px;
+		line-height: 1.55;
+		margin: 0;
+		color: rgba(0, 0, 0, 0.75);
+	}
+
+	.cookie-description a {
+		color: #8b0000;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.cookie-actions {
+		display: flex;
+		gap: 10px;
+		justify-content: flex-end;
+		flex-wrap: wrap;
+	}
+
+	.cookie-btn {
+		height: 44px;
+		padding: 0 18px;
+		border-radius: 12px;
+		border: 1px solid rgba(0, 0, 0, 0.12);
+		font-family: var(--font-body);
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+	}
+
+	.cookie-btn:focus-visible {
+		outline: 3px solid rgba(139, 0, 0, 0.5);
+		outline-offset: 2px;
+	}
+
+	.cookie-btn.primary {
+		background: #8b0000;
+		border-color: #8b0000;
+		color: #ffffff;
+	}
+
+	.cookie-btn.primary:hover {
+		background: #a52a2a;
+		border-color: #a52a2a;
+		transform: translateY(-1px);
+		box-shadow: 0 10px 20px rgba(139, 0, 0, 0.18);
+	}
+
+	.cookie-btn.ghost {
+		background: transparent;
+		color: #1a1a1a;
+	}
+
+	.cookie-btn.ghost:hover {
+		background: rgba(0, 0, 0, 0.04);
+		transform: translateY(-1px);
+		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+	}
+
+	@media (min-width: 768px) {
+		.cookie-inner {
+			grid-template-columns: 1fr auto;
+			align-items: center;
+			padding: 20px 22px;
+		}
+	}
+</style>

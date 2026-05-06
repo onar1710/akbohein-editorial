@@ -1,0 +1,127 @@
+---
+import Layout from '../layouts/Layout.astro';
+const title = 'Email to Dina Powell, Senior Advisor to Trump.';
+const canonical = 'https://akboheim.com/email-to-dina-powell-senior-advisor-to-trump/';
+---
+<Layout
+	title={`${title} | Akboheim`}
+	description="This is an email I sent to Dina Powell, a partner at my former firm, Goldman Sachs, who joined the Trump Administration as Senior Advisor."
+	canonical={canonical}
+	author="Amna Boheim"
+>
+	<main class="article-page">
+		<div class="article-container">
+			<article class="article">
+				<header class="article-header">
+					<h1 class="article-title">{title}</h1>
+					<p class="article-description">
+						This is an email I sent to Dina Powell, a partner at my former firm, Goldman Sachs, who recently joined the Trump Administration as Senior Advisor, focused on entrepreneurship, economic growth, and women’s empowerment…
+					</p>
+				</header>
+
+				<div class="article-content">
+					<p><strong>Dear Dina,</strong></p>
+					<p>
+						This email may reach you too late, as I believe you may have already officially started working at the White House. If so, I hope it is still passed on to you.
+					</p>
+					<p>
+						You probably don’t remember, but we met during the Goldman Sachs CEO orientation program in late 2007. I remember being impressed by your commitment to public service and the non-profit sector, and I thought your experience and insight would make a difference at Goldman Sachs.
+					</p>
+					<p>
+						And what a difference you made. I admired your rise, leading the firm’s Impact Investing as well as the Goldman Sachs Foundation, and driving the 10,000 Women and 10,000 Small Businesses programs. As one of the few women in senior leadership at the firm, you were a true role model—someone every woman, from analyst onward, should admire and respect.
+					</p>
+					<p>
+						But now you are leaving to join the Trump Administration, and I cannot understand how you—a person I respected—can even consider working for a man like Donald Trump: a person who denigrates and abuses women, a person who, in one of his first acts as President, clipped women’s wings on abortion, the man who on Friday implemented a hypocritical and outrageous ban on entry into the United States for people from seven countries, all in the name of fighting terrorism. Despite all scientific evidence, he denies that climate change is an urgent problem. And he and his team present “alternative facts,” a truly Orwellian phrase. He is a dictator, a bully, a man used to getting his way. In short, a dangerous person in a position of power. Do you really think you can influence someone with such deeply rooted prejudices about the empowerment of women and girls and women’s entrepreneurship?
+					</p>
+					<p>
+						You were born in Egypt; your parents immigrated to the United States when you were a child. How do you reconcile your origins with working for Trump? By aligning yourself with this man, you have lost my respect. As a woman, as an immigrant who has thrived in the United States, how can you ignore what he is doing? The day he was elected, I felt profound disappointment. The day I learned of your appointment, I learned an important lesson: nothing—not even moral scruples—stands in the way of ambition.
+					</p>
+					<p>
+						So congratulations on your appointment, on keeping silent, on turning your back on the many women who admired you.
+					</p>
+					<p class="signature">Amna Boheim</p>
+				</div>
+			</article>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.article-page {
+		padding: 40px 0;
+	}
+
+	.article-container {
+		max-width: 860px;
+		margin: 0 auto;
+		padding: 0 24px;
+	}
+
+	.article {
+		padding: 8px 0 0;
+	}
+
+	.article-header {
+		padding: 0 0 28px;
+		margin-bottom: 28px;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+		text-align: center;
+	}
+
+	.article-title {
+		font-family: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+		font-size: clamp(30px, 5vw, 52px);
+		font-weight: 900;
+		letter-spacing: -0.03em;
+		margin: 0 0 14px;
+		color: #1a1a1a;
+		line-height: 1.1;
+	}
+
+	.article-description {
+		margin: 0 auto;
+		max-width: 760px;
+		font-family: 'Crimson Text', 'Georgia', serif;
+		color: rgba(0, 0, 0, 0.72);
+		font-size: 18px;
+		line-height: 1.7;
+		font-style: italic;
+	}
+
+	.article-content {
+		font-family: 'Crimson Text', 'Georgia', serif;
+		font-size: 19px;
+		line-height: 1.85;
+		color: #333;
+	}
+
+	.article-content p {
+		margin: 0 0 22px;
+	}
+
+	.article-content strong {
+		font-weight: 700;
+		color: #1a1a1a;
+	}
+
+	.signature {
+		margin-top: 28px;
+		margin-bottom: 0;
+		text-align: right;
+		font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+		font-weight: 700;
+		letter-spacing: 0.01em;
+	}
+
+	@media (min-width: 768px) {
+		.article-container {
+			padding: 0 40px;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.article-content {
+			font-size: 20px;
+		}
+	}
+</style>
